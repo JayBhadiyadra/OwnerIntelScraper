@@ -28,6 +28,16 @@ Required / recommended environment variables:
 - `DEFAULT_PHONE_REGION` — phone parsing region (use `IN` for India)
 - `DATABASE_URL` + `SYNC_DATABASE_URL` — Postgres connection strings
 
+Example .env format:
+```bash
+DATABASE_URL=db_connection_string
+SYNC_DATABASE_URL=db_connection_string
+SQLALCHEMY_WARN_20=0
+DEFAULT_PHONE_REGION=IN
+SERPAPI_KEY=api_key_value
+GOOGLE_MAPS_API_KEY=api_key_value
+```
+
 ### 3. Initialize database
 ```bash
 python init_db.py

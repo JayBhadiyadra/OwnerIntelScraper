@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     MAX_RETRIES: int = 2
     DEFAULT_PHONE_REGION: str = "IN"
 
-    # SerpAPI — Google CAPTCHA fallback (free: 100/month at serpapi.com)
+    # SerpAPI — Google CAPTCHA fallback (free: 250/month at serpapi.com)
     SERPAPI_KEY: str = ""
 
     # Google Maps API — best Maps data quality (free: 1000/month)

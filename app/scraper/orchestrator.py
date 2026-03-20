@@ -7,7 +7,7 @@ Changes vs original:
   - Added IndiaMART scraper (from whois_scraper.py)
   - Indian sources (Justdial/Sulekha/IndiaMART/Maps) now run in parallel
     alongside Western sources in Step 3
-  - City extraction from query (e.g. "Rajhans Cinema Surat" → city=Surat)
+  - City extraction from query (e.g. "Vrattiks Surat" → city=Surat)
   - Status messages now clearly show which Indian sources are being checked
 """
 import asyncio
@@ -242,7 +242,7 @@ async def run_full_search(query: str) -> AsyncIterator[str]:
             message = (
                 f"🔍 Search complete for '{company_name or query}'. "
                 "No owner contacts found from any source. "
-                "Tips: (1) Add city name to your query (e.g. 'Rajhans Cinema Surat'), "
+                "Tips: (1) Add city name to your query (e.g. 'Vrattiks Surat'), "
                 "(2) Try the business's registered/legal name, "
                 "(3) Use /api/search?q=...&force_refresh=true to bypass cache."
             )
