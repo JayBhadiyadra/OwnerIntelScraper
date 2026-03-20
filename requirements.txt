@@ -1,0 +1,23 @@
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+httpx==0.27.0
+beautifulsoup4==4.12.3
+lxml==5.2.1
+python-whois==0.9.4
+sqlalchemy[asyncio]==2.0.30
+asyncpg==0.29.0
+python-dotenv==1.0.1
+pydantic==2.7.1
+pydantic-settings==2.2.1
+googlesearch-python==1.2.3
+fake-useragent==1.5.1
+phonenumbers==8.13.37
+python-multipart==0.0.9
+aiofiles==23.2.1
+tenacity==8.3.0
+greenlet==3.0.3
+requests
+
+# FIX #1 + FIX #3: Playwright for JS-heavy pages (Justdial + Google Maps)
+# After pip install, run: playwright install chromium
+playwright==1.44.0

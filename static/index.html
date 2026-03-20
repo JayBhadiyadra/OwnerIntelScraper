@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Owner Intel — Find Real Owner Contacts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #080c10;
+    --surface:  #0d1117;
+    --surface2: #141b24;
+    --border:   #1e2d3d;
+    --border2:  #253447;
+    --accent:   #00d4ff;
+    --accent2:  #0099cc;
+    --gold:     #f0c040;
+    --green:    #39d98a;
+    --red:      #ff5f6d;
+    --orange:   #ff9640;
+    --muted:    #4a6278;
+    --text:     #c9d8e8;
+    --text2:    #8fa8bf;
+    --text3:    #4a6278;
+    --mono:     'Space Mono', monospace;
+    --sans:     'Syne', sans-serif;
+    --radius:   4px;
+    --glow:     0 0 20px rgba(0,212,255,0.15);
+    --glow-strong: 0 0 40px rgba(0,212,255,0.25);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    min-height: 100vh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* ── Grid background ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Scanline effect ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── Glow orb ── */
+  .orb {
+    position: fixed;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,212,255,0.06) 0%, transparent 70%);
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: orbPulse 8s ease-in-out infinite;
+  }
+  @keyframes orbPulse {
+    0%,100% { opacity:0.6; transform: translateX(-50%) scale(1); }
+    50%      { opacity:1;   transform: translateX(-50%) scale(1.1); }
+  }
+
+  /* ── Layout ── */
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px 60px;
+  }
+
+  /* ── Header ── */
+  header {
+    padding: 48px 0 40px;
+    animation: fadeSlideDown 0.8s ease both;
+  }
+
+  .header-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(0,212,255,0.3);
+    padding: 4px 10px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+  }
+  .header-badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    animation: blink 1.4s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  h1 {
+    font-family: var(--sans);
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: #fff;
+  }
+  h1 span { color: var(--accent); }
+
+  .subtitle {
+    margin-top: 10px;
+    color: var(--text2);
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    max-width: 500px;
+    line-height: 1.7;
+  }
+
+  /* ── Search box ── */
+  .search-section {
+    margin-bottom: 32px;
+    animation: fadeSlideDown 0.8s 0.15s ease both;
+  }
+
+  .search-label {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  .search-box {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    background: var(--surface);
+    overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .search-box:focus-within {
+    border-color: var(--accent);
+    box-shadow: var(--glow);
+  }
+
+  .search-prompt {
+    padding: 0 16px;
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid var(--border);
+    background: rgba(0,212,255,0.04);
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  #searchInput {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 16px 20px;
+    color: #fff;
+    font-family: var(--mono);
+    font-size: 14px;
+    letter-spacing: 0.02em;
+  }
+  #searchInput::placeholder { color: var(--muted); }
+
+  .search-btn {
+    padding: 0 28px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    white-space: nowrap;
+  }
+  .search-btn:hover  { background: #33ddff; }
+  .search-btn:active { transform: scale(0.97); }
+  .search-btn:disabled {
+    background: var(--muted);
+    cursor: not-allowed;
+  }
+
+  .search-hint {
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--text3);
+  }
+  .search-hint span { color: var(--text2); }
+
+  /* ── Progress terminal ── */
+  #terminal {
+    display: none;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 24px;
+    overflow: hidden;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .terminal-bar {
+    padding: 10px 16px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .terminal-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+  }
+  .td-red    { background: #ff5f57; }
+  .td-yellow { background: #ffbd2e; }
+  .td-green  { background: #28c840; }
+  .terminal-title {
+    margin-left: 6px;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+
+  .terminal-body {
+    padding: 16px 20px;
+    min-height: 60px;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+
+  .log-line {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    animation: logAppear 0.25s ease both;
+  }
+  .log-ts {
+    color: var(--text3);
+    min-width: 60px;
+    flex-shrink: 0;
+  }
+  .log-msg { color: var(--text2); line-height: 1.5; }
+  .log-msg.success { color: var(--green); }
+  .log-msg.warn    { color: var(--orange); }
+  .log-msg.error   { color: var(--red); }
+
+  @keyframes logAppear {
+    from { opacity:0; transform: translateX(-8px); }
+    to   { opacity:1; transform: translateX(0); }
+  }
+
+  /* ── Progress bar ── */
+  .progress-wrap {
+    height: 2px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    width: 0%;
+    transition: width 0.5s ease;
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  /* ── Results grid ── */
+  #resultsSection { display: none; }
+
+  .results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .results-meta {
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+  .results-meta strong {
+    color: var(--accent);
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+
+  .results-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-ghost {
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--text2);
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-ghost:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    box-shadow: 0 0 10px rgba(0,212,255,0.1);
+  }
+
+  /* ── Result card ── */
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-bottom: 12px;
+    overflow: hidden;
+    animation: cardSlideIn 0.4s ease both;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+  .result-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .result-card:hover {
+    border-color: var(--border2);
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  .result-card:hover::before { opacity: 1; }
+
+  @keyframes cardSlideIn {
+    from { opacity:0; transform: translateY(12px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  .card-top {
+    padding: 16px 20px 14px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card-identity { flex: 1; min-width: 0; }
+
+  .card-name {
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .card-name.unknown { color: var(--text3); font-style: italic; font-family: var(--mono); font-size: 12px; }
+
+  .card-role {
+    margin-top: 3px;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .card-confidence {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .confidence-label {
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+  .confidence-value {
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 800;
+  }
+  .conf-high  { color: var(--green); }
+  .conf-med   { color: var(--gold); }
+  .conf-low   { color: var(--red); }
+
+  .card-body {
+    padding: 14px 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 12px 20px;
+  }
+
+  .card-field { display: flex; flex-direction: column; gap: 4px; }
+  .field-label {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+  .field-value {
+    font-size: 12px;
+    color: var(--text);
+    word-break: break-all;
+  }
+  .field-value a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .field-value a:hover { text-decoration: underline; }
+  .field-value.empty { color: var(--text3); font-style: italic; }
+
+  .phone-chip {
+    display: inline-block;
+    background: rgba(0,212,255,0.08);
+    border: 1px solid rgba(0,212,255,0.2);
+    color: var(--accent);
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 12px;
+    margin: 2px 4px 2px 0;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-family: var(--mono);
+  }
+  .phone-chip:hover { background: rgba(0,212,255,0.15); }
+
+  .card-footer {
+    padding: 10px 20px;
+    background: rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .source-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--text2);
+  }
+  .source-icon {
+    width: 16px; height: 16px;
+    border-radius: 2px;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: var(--text3);
+    font-weight: bold;
+    flex-shrink: 0;
+  }
+  .source-link {
+    font-size: 10px;
+    color: var(--text3);
+    text-decoration: none;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .source-link:hover { color: var(--accent); }
+
+  .card-snippet {
+    font-size: 10px;
+    color: var(--text3);
+    line-height: 1.5;
+    padding: 10px 20px;
+    border-top: 1px solid var(--border);
+    display: none;
+    font-style: italic;
+  }
+  .result-card.expanded .card-snippet { display: block; }
+
+  .btn-expand {
+    font-size: 10px;
+    color: var(--text3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0;
+    transition: color 0.2s;
+  }
+  .btn-expand:hover { color: var(--accent); }
+
+  /* ── Empty / not found states ── */
+  .state-box {
+    text-align: center;
+    padding: 60px 20px;
+    border: 1px dashed var(--border);
+    border-radius: var(--radius);
+    animation: fadeIn 0.4s ease;
+  }
+  .state-icon {
+    font-size: 40px;
+    margin-bottom: 16px;
+    display: block;
+  }
+  .state-title {
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .state-msg {
+    font-size: 12px;
+    color: var(--text2);
+    line-height: 1.7;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeIn { from{opacity:0} to{opacity:1} }
+  @keyframes fadeSlideDown {
+    from { opacity:0; transform: translateY(-16px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  /* ── Spinner ── */
+  .spinner {
+    display: inline-block;
+    width: 12px; height: 12px;
+    border: 2px solid var(--border2);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Tooltip (copy feedback) ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 10px 18px;
+    border-radius: var(--radius);
+    font-size: 12px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.25s ease;
+    z-index: 100;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+
+  /* ── Stats bar ── */
+  .stats-bar {
+    display: flex;
+    gap: 24px;
+    padding: 14px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+    overflow-x: auto;
+  }
+  .stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .stat-val {
+    font-family: var(--sans);
+    font-size: 20px;
+    font-weight: 800;
+    color: #fff;
+  }
+  .stat-key {
+    font-size: 9px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+
+  /* ── Recent searches ── */
+  .recent-section {
+    margin-top: 32px;
+    animation: fadeSlideDown 0.8s 0.3s ease both;
+  }
+  .recent-title {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text3);
+    margin-bottom: 10px;
+  }
+  .recent-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .recent-chip {
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    font-size: 11px;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .recent-chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  /* ── Mobile ── */
+  @media (max-width: 600px) {
+    .card-top { flex-direction: column; }
+    .card-confidence { flex-direction: row; align-items: center; }
+    .search-box { flex-wrap: wrap; }
+    .search-btn { width: 100%; padding: 14px; }
+    .stats-bar { gap: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="orb"></div>
+<div class="toast" id="toast"></div>
+
+<div class="wrapper">
+
+  <!-- Header -->
+  <header>
+    <div class="header-badge">OSINT · Contact Intelligence · Live Search</div>
+    <h1>Owner<span>Intel</span></h1>
+    <p class="subtitle">
+      Uncover real founder &amp; owner contact details — not the generic company hotline.
+      We search WHOIS, LinkedIn, Crunchbase, news &amp; registries simultaneously.
+    </p>
+  </header>
+
+  <!-- Search -->
+  <div class="search-section">
+    <span class="search-label">// Enter company name or website URL</span>
+    <div class="search-box">
+      <div class="search-prompt">$&nbsp;query&gt;</div>
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="e.g. Stripe  /  airbnb.com  /  Paytm India"
+        autocomplete="off"
+        spellcheck="false"
+      >
+      <button class="search-btn" id="searchBtn" onclick="startSearch()">
+        Search
+      </button>
+    </div>
+    <div class="search-hint">
+      Accepts: <span>company name</span>, <span>domain</span>, or <span>full URL</span>
+    </div>
+  </div>
+
+  <!-- Terminal -->
+  <div id="terminal">
+    <div class="terminal-bar">
+      <div class="terminal-dot td-red"></div>
+      <div class="terminal-dot td-yellow"></div>
+      <div class="terminal-dot td-green"></div>
+      <span class="terminal-title">intel.gather — live feed</span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+    <div class="terminal-body" id="terminalBody"></div>
+  </div>
+
+  <!-- Results -->
+  <div id="resultsSection">
+    <div class="results-header">
+      <div class="results-meta">
+        Found <strong id="resultCount">0</strong> contact(s) for
+        <span id="resultCompany" style="color:var(--text)"></span>
+      </div>
+      <div class="results-actions">
+        <button class="btn-ghost" onclick="exportCSV()">⬇ Export CSV</button>
+        <button class="btn-ghost" onclick="clearResults()">✕ Clear</button>
+      </div>
+    </div>
+
+    <div class="stats-bar" id="statsBar" style="display:none">
+      <div class="stat-item">
+        <div class="stat-val" id="statPhones">0</div>
+        <div class="stat-key">Phone Numbers</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="statEmails">0</div>
+        <div class="stat-key">Emails</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="statLinkedIn">0</div>
+        <div class="stat-key">LinkedIn Profiles</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="statSources">0</div>
+        <div class="stat-key">Unique Sources</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-val" id="statConfidence">–</div>
+        <div class="stat-key">Avg. Confidence</div>
+      </div>
+    </div>
+
+    <div id="resultCards"></div>
+
+    <div id="notFoundBox" class="state-box" style="display:none">
+      <span class="state-icon">🔍</span>
+      <div class="state-title">No contacts found</div>
+      <p class="state-msg" id="notFoundMsg">
+        We couldn't find owner contact details for this company. 
+        Try adding the company's country or full legal name.
+      </p>
+    </div>
+  </div>
+
+  <!-- Recent Searches -->
+  <div class="recent-section" id="recentSection" style="display:none">
+    <div class="recent-title">// Recent searches</div>
+    <div class="recent-list" id="recentList"></div>
+  </div>
+
+</div>
+
+<script>
+// ──────────────────────────────────────────────────────────
+// State
+// ──────────────────────────────────────────────────────────
+let currentResults = [];
+let currentCompany = '';
+let currentCompanyUrl = '';
+let eventSource = null;
+
+// ──────────────────────────────────────────────────────────
+// Init
+// ──────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  loadRecent();
+
+  document.getElementById('searchInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') startSearch();
+  });
+});
+
+// ──────────────────────────────────────────────────────────
+// Search
+// ──────────────────────────────────────────────────────────
+function startSearch() {
+  const input = document.getElementById('searchInput');
+  const query = input.value.trim();
+  if (!query) {
+    input.focus();
+    shakeInput();
+    return;
+  }
+
+  // Reset state
+  currentResults = [];
+  currentCompany = query;
+  currentCompanyUrl = '';
+
+  // Close previous stream
+  if (eventSource) {
+    eventSource.close();
+    eventSource = null;
+  }
+
+  // UI setup
+  setSearching(true);
+  showTerminal();
+  hideResults();
+  clearTerminal();
+  setProgress(0);
+  logLine(`Initiating search for: ${query}`, 'default');
+
+  const url = `/api/search/stream?q=${encodeURIComponent(query)}`;
+  eventSource = new EventSource(url);
+
+  eventSource.addEventListener('status', (e) => {
+    const data = JSON.parse(e.data);
+    handleStatus(data);
+  });
+
+  eventSource.addEventListener('result', (e) => {
+    const data = JSON.parse(e.data);
+    handleResult(data);
+  });
+
+  eventSource.addEventListener('done', (e) => {
+    const data = JSON.parse(e.data);
+    handleDone(data);
+  });
+
+  eventSource.addEventListener('error', (e) => {
+    let msg = 'Search encountered an error.';
+    try { msg = JSON.parse(e.data).message; } catch {}
+    logLine(msg, 'error');
+    setSearching(false);
+    setProgress(100);
+    eventSource.close();
+  });
+
+  eventSource.onerror = () => {
+    if (eventSource.readyState === EventSource.CLOSED) return;
+    logLine('Connection lost. Please try again.', 'error');
+    setSearching(false);
+    eventSource.close();
+  };
+}
+
+// ──────────────────────────────────────────────────────────
+// Event handlers
+// ──────────────────────────────────────────────────────────
+const STEP_PROGRESS = { 1: 15, 2: 30, 3: 50, 4: 70, 5: 90 };
+
+function handleStatus(data) {
+  const msg = data.message || '';
+  const step = data.step;
+
+  // Determine style
+  let style = 'default';
+  if (msg.includes('✅')) style = 'success';
+  else if (msg.includes('⚠️')) style = 'warn';
+  else if (msg.includes('❌')) style = 'error';
+
+  logLine(stripEmoji(msg), style);
+
+  if (step) {
+    setProgress(STEP_PROGRESS[step] || 0);
+  }
+
+  if (data.company_name) {
+    currentCompany = data.company_name;
+  }
+  if (data.company_domain) {
+    currentCompanyUrl = `https://${data.company_domain}`;
+  }
+}
+
+function handleResult(data) {
+  currentResults.push(data);
+  renderCard(data, currentResults.length - 1);
+  showResultsSection();
+  updateStats();
+}
+
+function handleDone(data) {
+  setSearching(false);
+  setProgress(100);
+  eventSource.close();
+
+  if (data.company_name) currentCompany = data.company_name;
+  if (data.company_url)  currentCompanyUrl = data.company_url;
+
+  const msg = data.message || '';
+  const style = msg.includes('✅') ? 'success' : msg.includes('❌') ? 'error' : 'default';
+  logLine('─────────────────────────────────────', 'default');
+  logLine(stripEmoji(msg), style);
+
+  if (!data.found || currentResults.length === 0) {
+    showNotFound(msg);
+  } else {
+    document.getElementById('resultCount').textContent = currentResults.length;
+    document.getElementById('resultCompany').textContent = `"${currentCompany}"`;
+    showResultsSection();
+    updateStats();
+  }
+
+  saveRecent(currentCompany || document.getElementById('searchInput').value.trim());
+  loadRecent();
+}
+
+// ──────────────────────────────────────────────────────────
+// Card rendering
+// ──────────────────────────────────────────────────────────
+function renderCard(r, idx) {
+  const container = document.getElementById('resultCards');
+  const card = document.createElement('div');
+  card.className = 'result-card';
+  card.id = `card-${idx}`;
+  card.style.animationDelay = `${idx * 0.07}s`;
+
+  const confidence = Math.round((r.confidence_score || 0) * 100);
+  const confClass = confidence >= 70 ? 'conf-high' : confidence >= 40 ? 'conf-med' : 'conf-low';
+
+  const phones = Array.isArray(r.phone_numbers) ? r.phone_numbers : [];
+  const phonesHtml = phones.length
+    ? phones.map(p => `<span class="phone-chip" onclick="copyText('${p}', this)" title="Click to copy">${formatPhone(p)}</span>`).join('')
+    : '<span class="field-value empty">not found</span>';
+
+  const emailHtml = r.email
+    ? `<a href="mailto:${esc(r.email)}">${esc(r.email)}</a>`
+    : '<span class="empty">not found</span>';
+
+  const linkedInHtml = r.linkedin_url
+    ? `<a href="${esc(r.linkedin_url)}" target="_blank" rel="noopener">View Profile ↗</a>`
+    : '<span class="empty">–</span>';
+
+  const sourceName = esc(r.source_name || 'Web');
+  const sourceUrl  = r.source_url || '#';
+  const sourceIcon = getSourceIcon(r.source_name || '');
+
+  const namePart = r.owner_name
+    ? `<div class="card-name">${esc(r.owner_name)}</div>`
+    : `<div class="card-name unknown">name not identified</div>`;
+
+  const rolePart = r.role
+    ? `<div class="card-role">${esc(r.role)}</div>`
+    : '';
+
+  const snippet = r.raw_snippet
+    ? `<div class="card-snippet">"${esc(r.raw_snippet.substring(0, 300))}"</div>`
+    : '';
+
+  const expandBtn = r.raw_snippet
+    ? `<button class="btn-expand" onclick="toggleSnippet(${idx})">+ source snippet</button>`
+    : '';
+
+  card.innerHTML = `
+    <div class="card-top">
+      <div class="card-identity">
+        ${namePart}
+        ${rolePart}
+      </div>
+      <div class="card-confidence">
+        <div class="confidence-label">Confidence</div>
+        <div class="confidence-value ${confClass}">${confidence}%</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="card-field">
+        <div class="field-label">Phone Number(s)</div>
+        <div class="field-value">${phonesHtml}</div>
+      </div>
+      <div class="card-field">
+        <div class="field-label">Email</div>
+        <div class="field-value">${emailHtml}</div>
+      </div>
+      <div class="card-field">
+        <div class="field-label">LinkedIn</div>
+        <div class="field-value">${linkedInHtml}</div>
+      </div>
+    </div>
+    <div class="card-footer">
+      <div class="source-badge">
+        <div class="source-icon">${sourceIcon}</div>
+        <span>${sourceName}</span>
+      </div>
+      <a class="source-link" href="${esc(sourceUrl)}" target="_blank" rel="noopener" title="${esc(sourceUrl)}">${truncateUrl(sourceUrl)}</a>
+      ${expandBtn}
+    </div>
+    ${snippet}
+  `;
+
+  container.appendChild(card);
+  container.scrollTop = container.scrollHeight;
+}
+
+// ──────────────────────────────────────────────────────────
+// Stats
+// ──────────────────────────────────────────────────────────
+function updateStats() {
+  if (currentResults.length === 0) return;
+
+  const allPhones = new Set();
+  const allEmails = new Set();
+  const allLinkedIn = new Set();
+  const allSources = new Set();
+  let totalConf = 0;
+
+  for (const r of currentResults) {
+    const phones = Array.isArray(r.phone_numbers) ? r.phone_numbers : [];
+    phones.forEach(p => allPhones.add(p));
+    if (r.email) allEmails.add(r.email);
+    if (r.linkedin_url) allLinkedIn.add(r.linkedin_url);
+    if (r.source_name) allSources.add(r.source_name);
+    totalConf += r.confidence_score || 0;
+  }
+
+  document.getElementById('statPhones').textContent   = allPhones.size;
+  document.getElementById('statEmails').textContent   = allEmails.size;
+  document.getElementById('statLinkedIn').textContent = allLinkedIn.size;
+  document.getElementById('statSources').textContent  = allSources.size;
+  document.getElementById('statConfidence').textContent =
+    Math.round((totalConf / currentResults.length) * 100) + '%';
+
+  document.getElementById('statsBar').style.display = 'flex';
+}
+
+// ──────────────────────────────────────────────────────────
+// Export
+// ──────────────────────────────────────────────────────────
+function exportCSV() {
+  if (!currentResults.length) return;
+
+  const headers = ['Name', 'Role', 'Phone Numbers', 'Email', 'LinkedIn', 'Source', 'Source URL', 'Confidence'];
+  const rows = currentResults.map(r => [
+    r.owner_name || '',
+    r.role || '',
+    (Array.isArray(r.phone_numbers) ? r.phone_numbers : []).join('; '),
+    r.email || '',
+    r.linkedin_url || '',
+    r.source_name || '',
+    r.source_url || '',
+    Math.round((r.confidence_score || 0) * 100) + '%',
+  ]);
+
+  const csv = [headers, ...rows]
+    .map(row => row.map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+    .join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `owner-intel-${slugify(currentCompany)}-${Date.now()}.csv`;
+  a.click();
+  showToast('CSV exported!');
+}
+
+// ──────────────────────────────────────────────────────────
+// Recent searches
+// ──────────────────────────────────────────────────────────
+function saveRecent(query) {
+  if (!query) return;
+  let recents = JSON.parse(localStorage.getItem('oi_recents') || '[]');
+  recents = [query, ...recents.filter(r => r !== query)].slice(0, 8);
+  localStorage.setItem('oi_recents', JSON.stringify(recents));
+}
+
+function loadRecent() {
+  const recents = JSON.parse(localStorage.getItem('oi_recents') || '[]');
+  const section = document.getElementById('recentSection');
+  const list    = document.getElementById('recentList');
+
+  if (!recents.length) {
+    section.style.display = 'none';
+    return;
+  }
+
+  section.style.display = 'block';
+  list.innerHTML = recents
+    .map(r => `<div class="recent-chip" onclick="fillAndSearch('${esc(r)}')">${esc(r)}</div>`)
+    .join('');
+}
+
+function fillAndSearch(query) {
+  document.getElementById('searchInput').value = query;
+  startSearch();
+}
+
+// ──────────────────────────────────────────────────────────
+// UI helpers
+// ──────────────────────────────────────────────────────────
+function showTerminal() {
+  document.getElementById('terminal').style.display = 'block';
+}
+
+function hideResults() {
+  const s = document.getElementById('resultsSection');
+  s.style.display = 'none';
+  document.getElementById('resultCards').innerHTML = '';
+  document.getElementById('notFoundBox').style.display = 'none';
+  document.getElementById('statsBar').style.display = 'none';
+}
+
+function showResultsSection() {
+  const s = document.getElementById('resultsSection');
+  s.style.display = 'block';
+}
+
+function showNotFound(msg) {
+  showResultsSection();
+  document.getElementById('notFoundBox').style.display = 'block';
+  document.getElementById('notFoundMsg').textContent =
+    msg.replace(/[✅❌⚠️🔍📰💼🌐🔎]/gu, '').trim();
+  document.getElementById('resultCount').textContent = '0';
+  document.getElementById('resultCompany').textContent = `"${currentCompany}"`;
+}
+
+function clearResults() {
+  hideResults();
+  document.getElementById('terminal').style.display = 'none';
+  document.getElementById('searchInput').value = '';
+  currentResults = [];
+}
+
+function clearTerminal() {
+  document.getElementById('terminalBody').innerHTML = '';
+}
+
+function setSearching(active) {
+  const btn = document.getElementById('searchBtn');
+  const input = document.getElementById('searchInput');
+  if (active) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span>Scanning...';
+  } else {
+    btn.disabled = false;
+    btn.innerHTML = 'Search';
+    input.disabled = false;
+  }
+}
+
+function setProgress(pct) {
+  document.getElementById('progressBar').style.width = pct + '%';
+}
+
+function logLine(msg, style = 'default') {
+  const body = document.getElementById('terminalBody');
+  const now = new Date();
+  const ts = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const line = document.createElement('div');
+  line.className = 'log-line';
+  line.innerHTML = `
+    <span class="log-ts">[${ts}]</span>
+    <span class="log-msg ${style}">${esc(msg)}</span>
+  `;
+  body.appendChild(line);
+  body.scrollTop = body.scrollHeight;
+}
+
+function toggleSnippet(idx) {
+  const card = document.getElementById(`card-${idx}`);
+  if (card) card.classList.toggle('expanded');
+}
+
+function shakeInput() {
+  const box = document.querySelector('.search-box');
+  box.style.animation = 'none';
+  box.offsetHeight; // force reflow
+  box.style.animation = 'shake 0.4s ease';
+  setTimeout(() => box.style.animation = '', 500);
+}
+
+function copyText(text, el) {
+  navigator.clipboard.writeText(text).then(() => {
+    showToast(`Copied: ${text}`);
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ──────────────────────────────────────────────────────────
+// Formatting helpers
+// ──────────────────────────────────────────────────────────
+function esc(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function stripEmoji(str) {
+  return str.replace(/[\u{1F300}-\u{1FFFF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{FE00}-\u{FEFF}]|⚠️|✅|❌|📰|💼|🌐|🔎|🔍|⚡|⏭️/gu, '').trim();
+}
+
+function formatPhone(phone) {
+  // Convert E.164 to readable format
+  if (!phone) return phone;
+  try {
+    // Simple formatting: +12025551234 → +1 (202) 555-1234
+    if (phone.startsWith('+1') && phone.length === 12) {
+      return `+1 (${phone.slice(2,5)}) ${phone.slice(5,8)}-${phone.slice(8)}`;
+    }
+    return phone;
+  } catch { return phone; }
+}
+
+function truncateUrl(url) {
+  if (!url || url === '#') return '–';
+  try {
+    const u = new URL(url);
+    return u.hostname + (u.pathname !== '/' ? u.pathname.slice(0,30) + '…' : '');
+  } catch { return url.slice(0, 50); }
+}
+
+function slugify(str) {
+  return (str || 'search').toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40);
+}
+
+function getSourceIcon(name) {
+  const icons = {
+    'LinkedIn': 'in',
+    'Crunchbase': 'cb',
+    'WHOIS': 'w',
+    'Bloomberg': 'bb',
+    'Forbes': 'F',
+    'TechCrunch': 'tc',
+    'AngelList': 'al',
+    'ZoomInfo': 'zi',
+    'Owler': 'ow',
+    'Zauba Corp (MCA India)': 'mca',
+    'Companies House (UK)': 'uk',
+  };
+  return icons[name] || name.charAt(0).toUpperCase();
+}
+
+// ── Shake animation CSS (injected) ──
+const shakeStyle = document.createElement('style');
+shakeStyle.textContent = `
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-6px)}
+  40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}`;
+document.head.appendChild(shakeStyle);
+</script>
+</body>
+</html>

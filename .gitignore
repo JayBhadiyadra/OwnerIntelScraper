@@ -1,0 +1,37 @@
+# Secrets / environment
+.env
+.env.*
+
+# Python cache / build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+
+# Virtual environments
+venv/
+env/
+name_scrapper_venv/
+.venv/
+
+# Logs
+logs/
+*.log
+
+# Databases / local state (adjust if your project uses different files)
+*.sqlite3
+*.db
+
+# Editor / OS files
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+
+# Node (if any frontend tooling exists)
+node_modules/
+dist/
+build/
+
